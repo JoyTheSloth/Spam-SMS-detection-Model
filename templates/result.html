@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spam Detection Results</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      window.onload = function () {
+        const result = JSON.parse(localStorage.getItem("spamResult"));
+        if (result) {
+          document.getElementById("analyzed-statement").innerText =
+            result.message;
+
+          // Set prediction text and styling
+          const predictionEl = document.getElementById("prediction");
+          predictionEl.innerText = result.prediction;
+
+          // Set color based on prediction
+          if (result.prediction === "Spam") {
+            predictionEl.className = "text-xl font-semibold text-red-600 mb-4";
+          } else {
+            predictionEl.className =
+              "text-xl font-semibold text-green-600 mb-4";
+          }
+
+          // Set confidence information if available
+          if (result.confidence) {
+            const confidence = Math.round(result.confidence * 100);
+            document.getElementById(
+              "confidence"
+            ).innerText = `Confidence: ${confidence}%`;
+
+            // Set progress bar width
+            document.getElementById(
+              "confidence-bar"
+            ).style.width = `${confidence}%`;
+          }
+        } else {
+          // Redirect to main page if no result in storage
+          window.location.href = "index.html";
+        }
+      };
+    </script>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8 text-center">
+      <h1 class="text-4xl font-bold text-gray-900 mb-6">
+        Spam Detection Results
+      </h1>
+      <p class="text-lg text-gray-600 mb-6">
+        AI-powered analysis of your statement
+      </p>
+      <div class="bg-white rounded-lg shadow-md p-6 max-w-3xl mx-auto">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase mb-4">
+          Analyzed Statement
+        </h2>
+        <div class="bg-gray-100 rounded-lg p-6 mb-6">
+          <p id="analyzed-statement" class="text-lg text-gray-800"></p>
+        </div>
+        <h3 id="prediction" class="text-xl font-semibold mb-4">
+          Loading result...
+        </h3>
+        <p id="confidence" class="text-sm text-gray-500 mb-2">Confidence: --</p>
+
+        <!-- Add confidence bar -->
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
+          <div
+            id="confidence-bar"
+            class="bg-blue-600 h-2.5 rounded-full"
+            style="width: 0%"
+          ></div>
+        </div>
+
+        <button
+          onclick="window.location.href='index.html'"
+          class="bg-indigo-600 text-white px-6 py-3 rounded-full hover:bg-indigo-700 transition-transform transform hover:scale-105"
+        >
+          <i class="fas fa-redo mr-2"></i> Check Another
+        </button>
+      </div>
+    </div>
+  </body>
+</html>

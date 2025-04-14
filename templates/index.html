@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spam Detector</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      function detectSpam() {
+        const input = document.getElementById("statement").value;
+        const loadingBtn = document.getElementById("detectBtn");
+        const loadingText = document.getElementById("loadingText");
+
+        if (input.trim() !== "") {
+          // Show loading state
+          loadingBtn.disabled = true;
+          loadingBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing...';
+          loadingText.classList.remove("hidden");
+
+          fetch("http://127.0.0.1:5000/predict", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: input }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.prediction) {
+                // Store result in localStorage including confidence if available
+                localStorage.setItem(
+                  "spamResult",
+                  JSON.stringify({
+                    message: input,
+                    prediction: data.prediction,
+                    confidence: data.confidence || null,
+                  })
+                );
+                // Redirect to results page
+                window.location.href = "result.html";
+              } else {
+                alert("Error: " + data.error);
+                resetButton();
+              }
+            })
+            .catch((error) => {
+              alert("Error: " + error);
+              resetButton();
+            });
+        }
+      }
+
+      function resetButton() {
+        const loadingBtn = document.getElementById("detectBtn");
+        const loadingText = document.getElementById("loadingText");
+        loadingBtn.disabled = false;
+        loadingBtn.innerHTML = '<i class="fas fa-search mr-2"></i> Detect';
+        loadingText.classList.add("hidden");
+      }
+
+      // Handle Enter key press
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("statement")
+          .addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+              detectSpam();
+            }
+          });
+      });
+    </script>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 font-sans">
+    <div class="min-h-screen flex flex-col">
+      <nav class="bg-white shadow py-4">
+        <div
+          class="max-w-7xl mx-auto px-4 text-center text-2xl font-semibold text-gray-900"
+        >
+          Spam Detector
+        </div>
+      </nav>
+      <main class="flex-grow container mx-auto px-4 py-8 text-center">
+        <h1 class="text-6xl font-bold text-gray-900 mb-6">Check for Spam</h1>
+        <p class="text-lg text-gray-600 mb-8">
+          Enter a statement below to analyze for spam.
+        </p>
+        <div class="max-w-2xl mx-auto relative mb-4">
+          <input
+            id="statement"
+            type="text"
+            placeholder="Enter a statement..."
+            class="w-full pl-4 pr-32 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <button
+            id="detectBtn"
+            onclick="detectSpam()"
+            class="absolute right-2 top-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105"
+          >
+            <i class="fas fa-search mr-2"></i> Detect
+          </button>
+        </div>
+        <p id="loadingText" class="text-sm text-gray-500 hidden">
+          Analyzing with ML model, please wait...
+        </p>
+
+        <div class="mt-16 max-w-2xl mx-auto bg-white rounded-lg shadow-sm p-6">
+          <h2 class="text-xl font-semibold mb-4">Example statements to try:</h2>
+          <ul class="text-left space-y-3">
+            <li class="flex items-start">
+              <span class="text-red-500 font-medium mr-2">Spam:</span>
+              <span
+                >"URGENT: You've won a $1000 gift card! Click here to claim
+                now!"</span
+              >
+            </li>
+            <li class="flex items-start">
+              <span class="text-green-500 font-medium mr-2">Not Spam:</span>
+              <span
+                >"Can we meet tomorrow at 2 PM to discuss the project
+                proposal?"</span
+              >
+            </li>
+            <li class="flex items-start">
+              <span class="text-red-500 font-medium mr-2">Spam:</span>
+              <span
+                >"Congratulations! You've been selected for a free iPhone 15 Pro
+                Max!"</span
+              >
+            </li>
+          </ul>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
