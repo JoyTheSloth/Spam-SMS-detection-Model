@@ -5,14 +5,254 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Spam Detector</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       rel="stylesheet"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particlesjs/2.2.3/particles.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              dark: "#121212",
+              "dark-surface": "#1E1E1E",
+              "dark-border": "#333333",
+              accent: "#8B5CF6",
+              "accent-hover": "#7C3AED",
+              "text-primary": "#F3F4F6",
+              "text-secondary": "#A1A1AA",
+            },
+            animation: {
+              "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              float: "float 3s ease-in-out infinite",
+              gradient: "gradient 8s ease infinite",
+            },
+            keyframes: {
+              float: {
+                "0%, 100%": { transform: "translateY(0)" },
+                "50%": { transform: "translateY(-10px)" },
+              },
+              gradient: {
+                "0%": { backgroundPosition: "0% 50%" },
+                "50%": { backgroundPosition: "100% 50%" },
+                "100%": { backgroundPosition: "0% 50%" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: #121212;
+        overflow-x: hidden;
+      }
+
+      .gradient-text {
+        background: linear-gradient(90deg, #8b5cf6, #ec4899, #8b5cf6);
+        background-size: 200% auto;
+        color: transparent;
+        -webkit-background-clip: text;
+        background-clip: text;
+        animation: gradient 8s ease infinite;
+      }
+
+      .input-focus-effect:focus-within {
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+      }
+
+      .card-glow {
+        box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      .card-glow:hover {
+        box-shadow: 0 0 25px rgba(139, 92, 246, 0.4);
+        transform: translateY(-5px);
+      }
+
+      .btn-detect {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .btn-detect:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .btn-detect:hover:before {
+        left: 100%;
+      }
+
+      #particles-js {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 0;
+      }
+
+      .example-item {
+        transition: all 0.3s ease;
+      }
+
+      .example-item:hover {
+        transform: translateX(8px);
+      }
+
+      /* Animations for initial page load */
+      .fade-in-up {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-text-primary">
+    <div id="particles-js"></div>
+
+    <div class="relative min-h-screen flex flex-col z-10">
+      <nav
+        class="bg-dark-surface border-b border-dark-border py-4 backdrop-blur-md bg-opacity-80"
+      >
+        <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fas fa-shield-alt text-accent text-2xl"></i>
+            <span class="text-2xl font-semibold gradient-text"
+              >Spam Detector</span
+            >
+          </div>
+          <div class="flex space-x-4">
+            <button
+              class="text-text-secondary hover:text-accent transition-colors"
+            >
+              <i class="fas fa-moon"></i>
+            </button>
+            <button
+              class="text-text-secondary hover:text-accent transition-colors"
+            >
+              <i class="fas fa-info-circle"></i>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <main class="flex-grow container mx-auto px-4 py-12 text-center">
+        <div class="max-w-3xl mx-auto">
+          <h1 class="text-6xl font-bold mb-6 fade-in-up gradient-text">
+            Check for Spam
+          </h1>
+          <p class="text-lg text-text-secondary mb-10 fade-in-up">
+            Enter a message below to analyze with our AI-powered spam detection
+            system
+          </p>
+
+          <div
+            class="relative mb-8 fade-in-up input-focus-effect rounded-xl bg-dark-surface border border-dark-border p-1"
+          >
+            <input
+              id="statement"
+              type="text"
+              placeholder="Enter a message to analyze..."
+              class="w-full pl-5 pr-36 py-5 bg-transparent rounded-lg focus:outline-none"
+            />
+            <button
+              id="detectBtn"
+              onclick="detectSpam()"
+              class="absolute right-2 top-2 bg-accent text-white px-6 py-3 rounded-lg hover:bg-accent-hover transition-all btn-detect"
+            >
+              <i class="fas fa-search mr-2"></i> Detect
+            </button>
+          </div>
+
+          <p
+            id="loadingText"
+            class="text-sm text-text-secondary hidden fade-in-up flex items-center justify-center"
+          >
+            <span class="inline-block mr-3 animate-pulse-slow">
+              <i class="fas fa-brain text-accent"></i>
+            </span>
+            Analyzing with advanced ML model, please wait...
+          </p>
+
+          <div
+            class="mt-16 max-w-3xl mx-auto bg-dark-surface rounded-xl border border-dark-border p-8 fade-in-up card-glow"
+          >
+            <h2 class="text-xl font-semibold mb-6 gradient-text">
+              Example messages to try:
+            </h2>
+            <ul class="text-left space-y-5">
+              <li
+                class="example-item flex items-start bg-opacity-30 bg-red-900 p-4 rounded-lg"
+              >
+                <span class="text-red-400 font-medium mr-3 flex-shrink-0 mt-1">
+                  <i class="fas fa-exclamation-circle"></i> Spam:
+                </span>
+                <span
+                  >"URGENT: You've won a $1000 gift card! Click here to claim
+                  now!"</span
+                >
+              </li>
+              <li
+                class="example-item flex items-start bg-opacity-30 bg-green-900 p-4 rounded-lg"
+              >
+                <span
+                  class="text-green-400 font-medium mr-3 flex-shrink-0 mt-1"
+                >
+                  <i class="fas fa-check-circle"></i> Not Spam:
+                </span>
+                <span
+                  >"Can we meet tomorrow at 2 PM to discuss the project
+                  proposal?"</span
+                >
+              </li>
+              <li
+                class="example-item flex items-start bg-opacity-30 bg-red-900 p-4 rounded-lg"
+              >
+                <span class="text-red-400 font-medium mr-3 flex-shrink-0 mt-1">
+                  <i class="fas fa-exclamation-circle"></i> Spam:
+                </span>
+                <span
+                  >"Congratulations! You've been selected for a free iPhone 15
+                  Pro Max!"</span
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+
+      <footer
+        class="py-6 border-t border-dark-border bg-dark-surface bg-opacity-80 backdrop-blur-md"
+      >
+        <div
+          class="container mx-auto px-4 text-center text-text-secondary text-sm"
+        >
+          <p>© 2025 Spam Detector | AI-Powered Analysis</p>
+        </div>
+      </footer>
+    </div>
+
     <script>
       function detectSpam() {
         const input = document.getElementById("statement").value;
@@ -20,11 +260,14 @@
         const loadingText = document.getElementById("loadingText");
 
         if (input.trim() !== "") {
-          // Show loading state
+          // Show loading state with animation
           loadingBtn.disabled = true;
           loadingBtn.innerHTML =
             '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing...';
           loadingText.classList.remove("hidden");
+
+          // Add pulse animation to the button
+          loadingBtn.classList.add("animate-pulse");
 
           fetch("http://127.0.0.1:5000/predict", {
             method: "POST",
@@ -45,17 +288,29 @@
                     confidence: data.confidence || null,
                   })
                 );
-                // Redirect to results page
-                window.location.href = "result.html";
+
+                // Add transition effect before redirect
+                document.body.style.opacity = 0;
+                setTimeout(() => {
+                  // Redirect to results page
+                  window.location.href = "result.html";
+                }, 300);
               } else {
-                alert("Error: " + data.error);
+                showNotification("Error: " + data.error, "error");
                 resetButton();
               }
             })
             .catch((error) => {
-              alert("Error: " + error);
+              showNotification("Error: " + error, "error");
               resetButton();
             });
+        } else {
+          // Shake the input field if empty
+          const inputField = document.getElementById("statement");
+          inputField.classList.add("animate-shake");
+          setTimeout(() => {
+            inputField.classList.remove("animate-shake");
+          }, 500);
         }
       }
 
@@ -64,7 +319,40 @@
         const loadingText = document.getElementById("loadingText");
         loadingBtn.disabled = false;
         loadingBtn.innerHTML = '<i class="fas fa-search mr-2"></i> Detect';
+        loadingBtn.classList.remove("animate-pulse");
         loadingText.classList.add("hidden");
+      }
+
+      function showNotification(message, type) {
+        // Create notification element
+        const notification = document.createElement("div");
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+          type === "error" ? "bg-red-600" : "bg-accent"
+        } text-white max-w-md transform transition-all duration-300 translate-y-[-20px] opacity-0`;
+        notification.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas ${
+              type === "error" ? "fa-exclamation-circle" : "fa-check-circle"
+            } mr-3"></i>
+            <p>${message}</p>
+          </div>
+        `;
+        document.body.appendChild(notification);
+
+        // Animate in
+        setTimeout(() => {
+          notification.style.transform = "translateY(0)";
+          notification.style.opacity = "1";
+        }, 10);
+
+        // Animate out after delay
+        setTimeout(() => {
+          notification.style.transform = "translateY(-20px)";
+          notification.style.opacity = "0";
+          setTimeout(() => {
+            notification.remove();
+          }, 300);
+        }, 5000);
       }
 
       // Handle Enter key press
@@ -76,74 +364,51 @@
               detectSpam();
             }
           });
-      });
-    </script>
-    <style>
-      body {
-        font-family: "Poppins", sans-serif;
-      }
-    </style>
-  </head>
-  <body class="bg-gray-50 font-sans">
-    <div class="min-h-screen flex flex-col">
-      <nav class="bg-white shadow py-4">
-        <div
-          class="max-w-7xl mx-auto px-4 text-center text-2xl font-semibold text-gray-900"
-        >
-          Spam Detector
-        </div>
-      </nav>
-      <main class="flex-grow container mx-auto px-4 py-8 text-center">
-        <h1 class="text-6xl font-bold text-gray-900 mb-6">Check for Spam</h1>
-        <p class="text-lg text-gray-600 mb-8">
-          Enter a statement below to analyze for spam.
-        </p>
-        <div class="max-w-2xl mx-auto relative mb-4">
-          <input
-            id="statement"
-            type="text"
-            placeholder="Enter a statement..."
-            class="w-full pl-4 pr-32 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          />
-          <button
-            id="detectBtn"
-            onclick="detectSpam()"
-            class="absolute right-2 top-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105"
-          >
-            <i class="fas fa-search mr-2"></i> Detect
-          </button>
-        </div>
-        <p id="loadingText" class="text-sm text-gray-500 hidden">
-          Analyzing with ML model, please wait...
-        </p>
 
-        <div class="mt-16 max-w-2xl mx-auto bg-white rounded-lg shadow-sm p-6">
-          <h2 class="text-xl font-semibold mb-4">Example statements to try:</h2>
-          <ul class="text-left space-y-3">
-            <li class="flex items-start">
-              <span class="text-red-500 font-medium mr-2">Spam:</span>
-              <span
-                >"URGENT: You've won a $1000 gift card! Click here to claim
-                now!"</span
-              >
-            </li>
-            <li class="flex items-start">
-              <span class="text-green-500 font-medium mr-2">Not Spam:</span>
-              <span
-                >"Can we meet tomorrow at 2 PM to discuss the project
-                proposal?"</span
-              >
-            </li>
-            <li class="flex items-start">
-              <span class="text-red-500 font-medium mr-2">Spam:</span>
-              <span
-                >"Congratulations! You've been selected for a free iPhone 15 Pro
-                Max!"</span
-              >
-            </li>
-          </ul>
-        </div>
-      </main>
-    </div>
+        // Initialize animations
+        initAnimations();
+
+        // Initialize particles
+        initParticles();
+      });
+
+      function initAnimations() {
+        // GSAP animations for page elements
+        gsap.registerPlugin();
+
+        const fadeUpElements = document.querySelectorAll(".fade-in-up");
+
+        gsap.fromTo(
+          fadeUpElements,
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, stagger: 0.15, ease: "power2.out" }
+        );
+      }
+
+      function initParticles() {
+        // Initialize particle.js
+        if (typeof Particles !== "undefined") {
+          Particles.init({
+            selector: "#particles-js",
+            color: ["#8B5CF6", "#EC4899"],
+            connectParticles: true,
+            responsive: [
+              {
+                breakpoint: 768,
+                options: {
+                  maxParticles: 30,
+                },
+              },
+              {
+                breakpoint: 425,
+                options: {
+                  maxParticles: 15,
+                },
+              },
+            ],
+          });
+        }
+      }
+    </script>
   </body>
 </html>
